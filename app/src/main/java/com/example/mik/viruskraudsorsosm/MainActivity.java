@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -39,6 +40,7 @@ import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity{
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity{
     private RotationGestureOverlay mRotationGestureOverlay;
     private final GeoPoint kvantoriumLocate = new GeoPoint(48.7032d, 44.50477d);
     private boolean routeState = false;
-    private List<Marker> numsRouteMarks = new ArrayList<Marker>();
+    private List<Marker> numsRouteMarks = new ArrayList<>();
     private Overlay roadOver;
     private final Overlay routeOverlay = new Overlay(){
         @Override
@@ -126,7 +128,7 @@ public class MainActivity extends AppCompatActivity{
             if (numsRouteMarks.size()==2) return false;
             if (event.getActionMasked()!=MotionEvent.ACTION_DOWN) return false;
 
-            Drawable ico = getApplicationContext().getDrawable(R.drawable.osm_ic_center_map);
+            Drawable ico = ContextCompat.getDrawable(getApplicationContext(),R.drawable.osm_ic_center_map);
             IGeoPoint tchPoint = map.getProjection().fromPixels((int) event.getX(), (int) event.getY());
             Marker m = new Marker(map);
             m.setPosition((GeoPoint) tchPoint);
@@ -136,12 +138,9 @@ public class MainActivity extends AppCompatActivity{
 
             if(numsRouteMarks.size()==2){
                 RoadManager roadManager = new OSRMRoadManager(this);
-                List<GeoPoint> waypoints = new ArrayList<GeoPoint>();
-                for(Marker i:numsRouteMarks){
-                    waypoints.add(i.getPosition());
-
-                }
-                Road road = roadManager.getRoad((ArrayList<GeoPoint>) waypoints);
+                ArrayList<GeoPoint> waypoints = new ArrayList<>();
+                for(Marker i:numsRouteMarks) waypoints.add(i.getPosition());
+                Road road = roadManager.getRoad(waypoints);
                 roadOver = RoadManager.buildRoadOverlay(road);
                 map.getOverlays().add(roadOver);
                 map.invalidate();
@@ -179,11 +178,9 @@ public class MainActivity extends AppCompatActivity{
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        ArrayList<String> permissionsToRequest = new ArrayList<>();
-        for (int i = 0; i < grantResults.length; i++) {
-            permissionsToRequest.add(permissions[i]);
-        }
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        ArrayList<String> permissionsToRequest;
+        permissionsToRequest = new ArrayList<>(Arrays.asList(permissions).subList(0, grantResults.length));
         if (permissionsToRequest.size() > 0) {
             ActivityCompat.requestPermissions(
                     this,
